@@ -184,13 +184,11 @@ int main(int argc, char *argv[])
 
 		if (params.cluster_dims == 4) {
 			startx = width;
-			COLS -= 2;
-			width = COLS - width;
+			width = COLS - 2 - width;
 			height = LINES;
 		} else if (params.cluster_dims == 3) {
 			startx = width;
-			COLS -= 2;
-			width = COLS - width;
+			width = COLS - 2 - width;
 			height = LINES;
 		} else {
 			startx = 0;
@@ -466,6 +464,7 @@ static void *_resize_handler(int sig)
 	int startx = 0, starty = 0;
 	int height = 40, width = 100;
 	int check_width = min_screen_width;
+	int cols = 0, lines = 0;
 	main_ycord = 1;
 
 	/* clear existing data and update to avoid ghost during resize */
@@ -476,11 +475,9 @@ static void *_resize_handler(int sig)
 	delwin(text_win);
 
 	endwin();
-	COLS = 0;
-	LINES = 0;
 	initscr();
 	doupdate();	/* update now to make sure we get the new size */
-	getmaxyx(stdscr, LINES, COLS);
+	getmaxyx(stdscr, lines, cols);
 
 	if (params.cluster_dims == 4) {
 		height = dim_size[2] * dim_size[3] + dim_size[2] + 3;
@@ -492,14 +489,14 @@ static void *_resize_handler(int sig)
 		check_width += width;
 	} else {
 		height = 10;
-		width = COLS;
+		width = cols;
 	}
 
-	if (COLS < check_width || LINES < height) {
+	if (cols < check_width || lines < height) {
 		endwin();
 		error("Screen is too small make sure "
 		      "the screen is at least %dx%d\n"
-		      "Right now it is %dx%d\n", width, height, COLS, LINES);
+		      "Right now it is %dx%d\n", width, height, cols, lines);
 		_smap_exit(0);	/* Calls exit(), no return */
 	}
 
@@ -508,18 +505,18 @@ static void *_resize_handler(int sig)
 
 	if (params.cluster_dims == 4) {
 		startx = width;
-		COLS -= 2;
-		width = COLS - width;
-		height = LINES;
+		cols -= 2;
+		width = cols - width;
+		height = lines;
 	} else if (params.cluster_dims == 3) {
 		startx = width;
-		COLS -= 2;
-		width = COLS - width;
-		height = LINES;
+		cols -= 2;
+		width = cols - width;
+		height = lines;
 	} else {
 		startx = 0;
 		starty = height;
-		height = LINES - height;
+		height = lines - height;
 	}
 
 	text_win = newwin(height, width, starty, startx);
